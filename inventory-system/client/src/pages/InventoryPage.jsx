@@ -1,6 +1,6 @@
-import AddItemForm from './AddItemForm'
-import ItemDetailModal from './ItemDetailModal'
-import InventoryTable from './InventoryTable'
+import AddItemForm from '../components/common/AddItemForm'
+import ItemDetailModal from '../components/common/ItemDetailModal'
+import InventoryTable from '../components/common/InventoryTable'
 
 export default function InventoryPage({ items, showAddForm, selectedItemId, loading, onShowAddForm, onItemSelected, onAddItem, onAssign, onReturn, onGenerateRevers, onCloseModal }) {
   return (

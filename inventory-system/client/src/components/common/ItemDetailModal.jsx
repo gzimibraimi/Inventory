@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getItemById } from '../lib/api'
+import { getItemById } from '../../lib/api'
 
 export default function ItemDetailModal({ itemId, onClose, onAssign, onReturn }) {
   const [item, setItem] = useState(null)

@@ -1,0 +1,120 @@
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--background, white);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.table th {
+  background: var(--table-header-bg, #f9fafb);
+  font-weight: 600;
+  color: var(--text, #111827);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table tbody tr:hover {
+  background: var(--table-row-hover, #f9fafb);
+}
+
+.table-row-clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.table-row-clickable:hover {
+  background: var(--table-row-hover, #f9fafb);
+}
+
+.table-select-column {
+  width: 48px;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.table-select-column input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Loading state */
+.table-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--text-secondary, #6b7280);
+  gap: 16px;
+}
+
+.table-spinner {
+  font-size: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.table-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .table-container {
+    font-size: 12px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .table-container {
+    border-color: var(--border-dark, #374151);
+  }
+
+  .table th {
+    background: var(--table-header-bg-dark, #1f2937);
+    color: var(--text-dark, #f9fafb);
+  }
+
+  .table th,
+  .table td {
+    border-bottom-color: var(--border-dark, #374151);
+  }
+
+  .table tbody tr:hover {
+    background: var(--table-row-hover-dark, #1f2937);
+  }
+
+  .table-row-clickable:hover {
+    background: var(--table-row-hover-dark, #1f2937);
+  }
+}

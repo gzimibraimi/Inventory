@@ -1,5 +1,5 @@
-import FilterPanel from './FilterPanel'
-import InventoryTable from './InventoryTable'
+import FilterPanel from './common/FilterPanel'
+import InventoryTable from './common/InventoryTable'
 
 export default function SearchPage({ items, filters, summary, loading, selectedItems, onFilterChange, onSearch, onAssign, onReturn, onGenerateRevers, onViewItem, onSelectionChange, onBulkAssign, onBulkReturn }) {
   return (
