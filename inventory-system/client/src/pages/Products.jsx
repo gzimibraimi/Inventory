@@ -1,9 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import FilterPanel from '../components/common/FilterPanel'
 import InventoryTable from '../components/common/InventoryTable'
 import { useProducts } from '../hooks/useProducts'
 import { ProductService } from '../services/productService'
+
+const buildFiltersFromSearchParams = (searchParams) => ({
+  status: searchParams.get('status') || 'all',
+  inventory_number: searchParams.get('inventory_number') || '',
+  assigned_to: searchParams.get('assigned_to') || '',
+  category: searchParams.get('category') || '',
+  office: searchParams.get('office') || '',
+  location: searchParams.get('location') || '',
+  q: searchParams.get('q') || ''
+})
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -11,15 +21,10 @@ export default function Products() {
   const [summary, setSummary] = useState({ available: 0, assigned: 0 })
 
   // Initialize filters from URL params
-  const initialFilters = {
-    status: searchParams.get('status') || 'all',
-    inventory_number: searchParams.get('inventory_number') || '',
-    assigned_to: searchParams.get('assigned_to') || '',
-    category: searchParams.get('category') || '',
-    office: searchParams.get('office') || '',
-    location: searchParams.get('location') || '',
-    q: searchParams.get('q') || ''
-  }
+  const initialFilters = useMemo(
+    () => buildFiltersFromSearchParams(searchParams),
+    [searchParams]
+  )
 
   const { products, loading, filters, updateFilters, search } = useProducts(initialFilters)
 

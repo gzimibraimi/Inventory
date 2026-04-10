@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as productsApi from '../api/productsApi'
 
-export const useProducts = (initialFilters = {}) => {
+const DEFAULT_FILTERS = {}
+
+export const useProducts = (initialFilters = DEFAULT_FILTERS) => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -35,10 +37,11 @@ export const useProducts = (initialFilters = {}) => {
     fetchProducts(searchFilters)
   }, [fetchProducts, filters])
 
-  // Auto-fetch on mount and when filters change
+  // Sync with externally provided filters, such as URL query params.
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    setFilters(initialFilters)
+    fetchProducts(initialFilters)
+  }, [fetchProducts, initialFilters])
 
   return {
     products,
