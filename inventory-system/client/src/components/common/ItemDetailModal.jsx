@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { getItemById } from '../../lib/api'
+import { getItemById } from '../../api/productsApi'
 
 export default function ItemDetailModal({ itemId, onClose, onAssign, onReturn }) {
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
+  const isAssigned = item && ['active', 'assigned'].includes(item.status)
 
   useEffect(() => {
     const loadItem = async () => {
@@ -135,9 +136,9 @@ export default function ItemDetailModal({ itemId, onClose, onAssign, onReturn })
               onClose()
             }}
           >
-            {item.status === 'assigned' ? 'Transfero' : 'Cakto'}
+            {isAssigned ? 'Transfero' : 'Cakto'}
           </button>
-          {item.status === 'assigned' && (
+          {isAssigned && (
             <button
               className="btn-secondary"
               onClick={() => {

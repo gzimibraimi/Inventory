@@ -1,4 +1,8 @@
 export default function FilterPanel({ filters, onFilterChange, onSearch }) {
+  const handleSearch = () => {
+    onSearch(filters)
+  }
+
   const handleReset = () => {
     const resetFilters = {
       status: 'all',
@@ -22,8 +26,8 @@ export default function FilterPanel({ filters, onFilterChange, onSearch }) {
           Status
           <select value={filters.status} onChange={(e) => onFilterChange('status', e.target.value)}>
             <option value="all">Të gjitha</option>
-            <option value="available">Lire</option>
-            <option value="assigned">Të caktuara</option>
+            <option value="inactive">Lire</option>
+            <option value="active">Të caktuara</option>
           </select>
         </label>
         <label>
@@ -76,7 +80,7 @@ export default function FilterPanel({ filters, onFilterChange, onSearch }) {
         </label>
       </div>
       <div className="filter-actions">
-        <button className="small-button" onClick={onSearch} disabled={false}>
+        <button className="small-button" onClick={handleSearch} disabled={false}>
           🔍 Kerko
         </button>
         <button className="small-button reset-button" onClick={handleReset}>

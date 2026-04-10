@@ -6,7 +6,7 @@ import { useProducts } from '../hooks/useProducts'
 import { ProductService } from '../services/productService'
 
 export default function Products() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [selectedItems, setSelectedItems] = useState([])
   const [summary, setSummary] = useState({ available: 0, assigned: 0 })
 
@@ -22,6 +22,20 @@ export default function Products() {
   }
 
   const { products, loading, filters, updateFilters, search } = useProducts(initialFilters)
+
+  const handleSearch = (searchFilters = filters) => {
+    const nextParams = new URLSearchParams()
+
+    Object.entries(searchFilters).forEach(([key, value]) => {
+      if (value && value !== 'all') {
+        nextParams.set(key, value)
+      }
+    })
+
+    setSearchParams(nextParams)
+    setSelectedItems([])
+    search(searchFilters)
+  }
 
   useEffect(() => {
     const loadSummary = async () => {
@@ -43,7 +57,7 @@ export default function Products() {
     try {
       await ProductService.assignProduct({ itemId: item.id, employeeName: employee })
       alert(`Paisja u caktua tek ${employee}.`)
-      search() // Refresh the list
+      handleSearch() // Refresh the list
     } catch (error) {
       console.error('Failed to assign product:', error)
       alert('Gabim gjatë caktimit të paisjes')
@@ -54,7 +68,7 @@ export default function Products() {
     try {
       await ProductService.returnProduct({ itemId: item.id })
       alert(`Paisja u lirua nga ${item.assigned_to || 'punëtori'}.`)
-      search() // Refresh the list
+      handleSearch() // Refresh the list
     } catch (error) {
       console.error('Failed to return product:', error)
       alert('Gabim gjatë lirimit të paisjes')
@@ -75,7 +89,7 @@ export default function Products() {
       }
       alert(`${selectedItems.length} paisje u caktuan tek ${employee}.`)
       setSelectedItems([])
-      search() // Refresh the list
+      handleSearch() // Refresh the list
     } catch (error) {
       console.error('Failed to bulk assign products:', error)
       alert('Gabim gjatë caktimit të paisjeve')
@@ -89,7 +103,7 @@ export default function Products() {
       }
       alert(`${selectedItems.length} paisje u liruan.`)
       setSelectedItems([])
-      search() // Refresh the list
+      handleSearch() // Refresh the list
     } catch (error) {
       console.error('Failed to bulk return products:', error)
       alert('Gabim gjatë lirimit të paisjeve')
@@ -106,7 +120,7 @@ export default function Products() {
       <FilterPanel
         filters={filters}
         onFilterChange={updateFilters}
-        onSearch={search}
+        onSearch={handleSearch}
       />
 
       <section className="panel">

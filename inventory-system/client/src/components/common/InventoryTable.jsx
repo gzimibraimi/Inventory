@@ -12,7 +12,6 @@ export default function InventoryTable({
   tableClass,
   viewMode
 }) {
-
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 12
 
@@ -26,6 +25,8 @@ export default function InventoryTable({
     const startIndex = (currentPage - 1) * pageSize
     return safeItems.slice(startIndex, startIndex + pageSize)
   }, [safeItems, currentPage])
+
+  const isAssignedStatus = (status) => ['active', 'assigned'].includes(status)
 
   const handleSelectAll = (checked) => {
     if (checked) {
@@ -96,10 +97,10 @@ export default function InventoryTable({
 
                 <div className="card-actions">
                   <button onClick={(e) => { e.stopPropagation(); onAssign(item); }}>
-                    {item.status === 'assigned' ? 'Transfero' : 'Cakto'}
+                    {isAssignedStatus(item.status) ? 'Transfero' : 'Cakto'}
                   </button>
 
-                  {item.status === 'assigned' && (
+                  {isAssignedStatus(item.status) && (
                     <button className="secondary" onClick={(e) => { e.stopPropagation(); onReturn(item); }}>
                       Liro
                     </button>
@@ -166,10 +167,10 @@ export default function InventoryTable({
 
                     <td>
                       <button onClick={(e) => { e.stopPropagation(); onAssign(item); }}>
-                        {item.status === 'assigned' ? 'Transfero' : 'Cakto'}
+                        {isAssignedStatus(item.status) ? 'Transfero' : 'Cakto'}
                       </button>
 
-                      {item.status === 'assigned' && (
+                      {isAssignedStatus(item.status) && (
                         <button onClick={(e) => { e.stopPropagation(); onReturn(item); }}>
                           Liro
                         </button>

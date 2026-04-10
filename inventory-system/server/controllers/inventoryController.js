@@ -1,4 +1,21 @@
 const pool = require('../config/db');
+const ACTIVE_STATUSES = ['active', 'assigned'];
+const INACTIVE_STATUSES = ['inactive', 'available'];
+
+const resolveStatusCondition = (status, values) => {
+  if (status === 'active') {
+    values.push(ACTIVE_STATUSES);
+    return `status = ANY($${values.length})`;
+  }
+
+  if (status === 'inactive') {
+    values.push(INACTIVE_STATUSES);
+    return `status = ANY($${values.length})`;
+  }
+
+  values.push(status);
+  return `status = $${values.length}`;
+};
 
 // ================= GET ALL ITEMS =================
 exports.getItems = async (req, res) => {
@@ -17,8 +34,7 @@ exports.getItems = async (req, res) => {
     const values = [];
 
     if (status && status !== 'all') {
-      values.push(status);
-      conditions.push(`status = $${values.length}`);
+      conditions.push(resolveStatusCondition(status, values));
     }
 
     if (q) {
@@ -66,13 +82,50 @@ exports.getItems = async (req, res) => {
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const { rows } = await pool.query(
-      `SELECT * FROM inventory_items ${whereClause} ORDER BY id DESC`
+      `SELECT * FROM inventory_items ${whereClause}
+       ORDER BY id ASC`
     );
 
     res.json({ data: rows });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch items' });
+  }
+};
+
+// ================= SUMMARY =================
+exports.getSummary = async (req, res) => {
+  try {
+    const [totalResult, inactiveResult, activeResult, inactiveItemsResult] = await Promise.all([
+      pool.query('SELECT COUNT(*)::int AS count FROM inventory_items'),
+      pool.query(
+        'SELECT COUNT(*)::int AS count FROM inventory_items WHERE status = ANY($1)',
+        [INACTIVE_STATUSES]
+      ),
+      pool.query(
+        'SELECT COUNT(*)::int AS count FROM inventory_items WHERE status = ANY($1)',
+        [ACTIVE_STATUSES]
+      ),
+      pool.query(
+        `SELECT * FROM inventory_items
+         WHERE status = ANY($1)
+         ORDER BY id ASC
+         LIMIT 5`,
+        [INACTIVE_STATUSES]
+      )
+    ]);
+
+    res.json({
+      data: {
+        total: totalResult.rows[0]?.count || 0,
+        available: inactiveResult.rows[0]?.count || 0,
+        assigned: activeResult.rows[0]?.count || 0,
+        availableItems: inactiveItemsResult.rows || []
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch summary' });
   }
 };
 
@@ -119,7 +172,7 @@ exports.createItem = async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO inventory_items
       (asset_id, inventory_number, name, brand, model, category, office, location, floor, status, notes)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'available',$10)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'inactive',$10)
       RETURNING *`,
       [
         asset_id || null,
@@ -215,7 +268,7 @@ exports.assignItem = async (req, res) => {
 
     const { rows } = await pool.query(
       `UPDATE inventory_items
-       SET assigned_to = $1, status = 'assigned'
+       SET assigned_to = $1, status = 'active'
        WHERE id = $2
        RETURNING *`,
       [employeeName, itemId]
@@ -234,7 +287,7 @@ exports.returnItem = async (req, res) => {
 
     const { rows } = await pool.query(
       `UPDATE inventory_items
-       SET assigned_to = NULL, status = 'available'
+       SET assigned_to = NULL, status = 'inactive'
        WHERE id = $1
        RETURNING *`,
       [itemId]

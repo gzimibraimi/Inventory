@@ -8,6 +8,7 @@ export default function ProductDetails() {
   const navigate = useNavigate()
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
+  const isAssigned = item && ['active', 'assigned'].includes(item.status)
 
   useEffect(() => {
     const loadItem = async () => {
@@ -145,9 +146,9 @@ export default function ProductDetails() {
 
         <div className="product-actions">
           <Button onClick={handleAssign}>
-            {item.status === 'assigned' ? 'Transfero' : 'Cakto'}
+            {isAssigned ? 'Transfero' : 'Cakto'}
           </Button>
-          {item.status === 'assigned' && (
+          {isAssigned && (
             <Button variant="secondary" onClick={handleReturn}>
               Liro
             </Button>

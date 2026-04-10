@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { AppProvider } from './context/AppContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppRoutes from './routes/AppRoutes'
 import Sidebar from './components/layout/Sidebar'
@@ -47,11 +46,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppProvider>
-          <ThemeProvider>
-            <Layout />
-          </ThemeProvider>
-        </AppProvider>
+        <ThemeProvider>
+          <Layout />
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   )

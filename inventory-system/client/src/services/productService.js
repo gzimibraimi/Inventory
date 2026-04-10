@@ -118,8 +118,8 @@ export class ProductService {
       ...product,
       displayName: product.name || product.asset_id || `Product ${product.id}`,
       statusLabel: this.getStatusLabel(product.status),
-      isAvailable: product.status === 'available',
-      isAssigned: product.status === 'assigned'
+      isAvailable: ['inactive', 'available'].includes(product.status),
+      isAssigned: ['active', 'assigned'].includes(product.status)
     }
   }
 
@@ -131,6 +131,8 @@ export class ProductService {
   // Get human-readable status label
   static getStatusLabel(status) {
     const labels = {
+      inactive: 'I lirë',
+      active: 'I caktuar',
       available: 'I lirë',
       assigned: 'I caktuar'
     }

@@ -81,7 +81,7 @@ export const validateAssignment = (product, employeeName) => {
     errors.employeeName = 'Emri i punëtorit është i nevojshëm'
   }
 
-  if (product.status === 'assigned') {
+  if (['active', 'assigned'].includes(product.status)) {
     errors.product = 'Produkti është tashmë i caktuar'
   }
 

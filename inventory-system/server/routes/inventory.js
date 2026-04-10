@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   getItems,
+  getSummary,
   getItemById,
   createItem,
   updateItem,
@@ -11,6 +12,7 @@ const {
 
 // GET all items
 router.get('/', getItems);
+router.get('/summary', getSummary);
 
 // GET single item
 router.get('/:itemId', getItemById);

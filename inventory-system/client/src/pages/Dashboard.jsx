@@ -69,21 +69,21 @@ export default function Dashboard() {
         <section className="dashboard-section">
           <h2>⚡ Qasje të Shpejta</h2>
           <div className="quick-actions">
-            <button className="quick-action-btn" onClick={() => handleNavigate('/products')}>
+            <button className="quick-action-btn" onClick={() => handleNavigate('/search')}>
               <div className="btn-icon">🔍</div>
               <div className="btn-text">
                 <div className="btn-title">Kerko Paisje</div>
                 <div className="btn-desc">Filtro dhe gjej paisjet</div>
               </div>
             </button>
-            <button className="quick-action-btn" onClick={() => handleNavigate('/products?status=available')}>
+            <button className="quick-action-btn" onClick={() => handleNavigate('/search?status=inactive')}>
               <div className="btn-icon">📋</div>
               <div className="btn-text">
                 <div className="btn-title">Paisjet Lire</div>
                 <div className="btn-desc">Shiko paisjet e lira</div>
               </div>
             </button>
-            <button className="quick-action-btn" onClick={() => handleNavigate('/products?status=assigned')}>
+            <button className="quick-action-btn" onClick={() => handleNavigate('/search?status=active')}>
               <div className="btn-icon">👤</div>
               <div className="btn-text">
                 <div className="btn-title">Paisjet e Caktuara</div>
@@ -108,7 +108,7 @@ export default function Dashboard() {
                 </div>
               ))}
               {summary.availableItems.length > 5 && (
-                <button className="view-all-btn" onClick={() => handleNavigate('/products?status=available')}>
+                <button className="view-all-btn" onClick={() => handleNavigate('/search?status=inactive')}>
                   Shiko të gjitha ({summary.availableItems.length})
                 </button>
               )}
