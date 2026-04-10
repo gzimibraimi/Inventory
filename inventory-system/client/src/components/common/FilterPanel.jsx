@@ -1,13 +1,17 @@
 export default function FilterPanel({ filters, onFilterChange, onSearch }) {
   const handleReset = () => {
-    onFilterChange('status', 'all')
-    onFilterChange('inventory_number', '')
-    onFilterChange('assigned_to', '')
-    onFilterChange('category', '')
-    onFilterChange('office', '')
-    onFilterChange('location', '')
-    onFilterChange('q', '')
-    onSearch()
+    const resetFilters = {
+      status: 'all',
+      inventory_number: '',
+      assigned_to: '',
+      category: '',
+      office: '',
+      location: '',
+      q: ''
+    }
+
+    onFilterChange(resetFilters)
+    onSearch(resetFilters)
   }
 
   return (

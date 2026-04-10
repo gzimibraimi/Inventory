@@ -1,17 +1,20 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Input from '../components/common/Input'
 import Button from '../components/common/Button'
+import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
-    username: '',
+    username: location.state?.username || '',
     password: ''
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(location.state?.registered ? 'Registration successful. Please log in.' : '')
 
   const handleChange = (e) => {
     setFormData({
@@ -26,17 +29,10 @@ export default function Login() {
     setError('')
 
     try {
-      // TODO: Implement actual login logic
-      // For now, just simulate a successful login
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // Store auth token (mock)
-      localStorage.setItem('authToken', 'mock-token')
-
-      // Navigate to dashboard
+      await login(formData.username, formData.password)
       navigate('/dashboard')
     } catch (err) {
-      setError('Kredencialet janë të pasakta')
+      setError(err.message || 'Kredencialet janë të pasakta')
     } finally {
       setLoading(false)
     }
@@ -53,20 +49,24 @@ export default function Login() {
         <form className="login-form" onSubmit={handleSubmit}>
           <Input
             label="Përdoruesi"
+            id="login-username"
             name="username"
             value={formData.username}
             onChange={handleChange}
             required
+            autoComplete="username"
             placeholder="Shkruaj përdoruesin"
           />
 
           <Input
             label="Fjalëkalimi"
+            id="login-password"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
             required
+            autoComplete="current-password"
             placeholder="Shkruaj fjalëkalimin"
           />
 
@@ -82,7 +82,7 @@ export default function Login() {
         </form>
 
         <div className="login-footer">
-          <p>Demo: admin / admin</p>
+          <p>Nuk keni llogari? <Link to="/register">Regjistrohuni</Link></p>
         </div>
       </div>
     </div>

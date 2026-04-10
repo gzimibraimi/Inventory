@@ -3,7 +3,15 @@ const pool = require('../config/db');
 // ================= GET ALL ITEMS =================
 exports.getItems = async (req, res) => {
   try {
-    const { status, q } = req.query;
+    const {
+      status,
+      q,
+      inventory_number,
+      assigned_to,
+      category,
+      office,
+      location,
+    } = req.query;
 
     const conditions = [];
     const values = [];
@@ -28,6 +36,31 @@ exports.getItems = async (req, res) => {
           assigned_to ILIKE $${values.length}
         )
       `);
+    }
+
+    if (inventory_number) {
+      values.push(`%${inventory_number}%`);
+      conditions.push(`inventory_number ILIKE $${values.length}`);
+    }
+
+    if (assigned_to) {
+      values.push(`%${assigned_to}%`);
+      conditions.push(`assigned_to ILIKE $${values.length}`);
+    }
+
+    if (category) {
+      values.push(`%${category}%`);
+      conditions.push(`category ILIKE $${values.length}`);
+    }
+
+    if (office) {
+      values.push(`%${office}%`);
+      conditions.push(`office ILIKE $${values.length}`);
+    }
+
+    if (location) {
+      values.push(`%${location}%`);
+      conditions.push(`location ILIKE $${values.length}`);
     }
 
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

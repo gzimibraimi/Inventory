@@ -1,66 +1,140 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-
-import Dashboard from '../pages/Dashboard'
-import Products from '../pages/Products'
-import ProductDetails from '../pages/ProductDetails'
-import Login from '../pages/Login'
-import Search from '../pages/Search'
-import Inventory from '../pages/InventoryPage'
+import { useState } from 'react'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import AddItemForm from '../components/common/AddItemForm'
+import { useAuth } from '../context/AuthContext'
+import Dashboard from '../pages/Dashboard'
+import InventoryPage from '../pages/InventoryPage'
+import Login from '../pages/Login'
+import ProductDetails from '../pages/ProductDetails'
+import Products from '../pages/Products'
+import Register from '../pages/Register'
+import { ProductService } from '../services/productService'
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth()
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth()
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return <div className="page-content"><p>Po ngarkohet...</p></div>
+  }
 
-  return isAuthenticated ? children : <Navigate to="/login" replace />
+  return user ? children : <Navigate to="/login" replace />
 }
 
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth()
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth()
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return <div className="page-content"><p>Po ngarkohet...</p></div>
+  }
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children
+  return user ? <Navigate to="/dashboard" replace /> : children
+}
+
+function AddItemPage() {
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (formData) => {
+    try {
+      setLoading(true)
+      await ProductService.createProduct(formData)
+      navigate('/inventory')
+    } catch (error) {
+      console.error('Failed to create product:', error)
+      alert(error.message || 'Gabim gjatë shtimit të paisjes')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="page-content inventory-page">
+      <header className="page-header">
+        <h1>➕ Shto Paisje</h1>
+        <p>Krijo një paisje të re në sistem</p>
+      </header>
+
+      <AddItemForm
+        loading={loading}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate('/inventory')}
+      />
+    </div>
+  )
 }
 
 export default function AppRoutes() {
-  const { isAuthenticated } = useAuth()
+  const { user } = useAuth()
 
   return (
     <Routes>
-
-      {/* Public */}
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-
-      {/* Protected */}
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-      <Route path="/products/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
-      <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-      <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-      <Route path="/add" element={<ProtectedRoute><AddItemForm /></ProtectedRoute>} />
-
-      {/* Smart redirect */}
       <Route
-        path="/"
+        path="/login"
         element={
-          isAuthenticated
-            ? <Navigate to="/dashboard" replace />
-            : <Navigate to="/login" replace />
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
         }
       />
 
       <Route
-        path="*"
+        path="/register"
         element={
-          isAuthenticated
-            ? <Navigate to="/dashboard" replace />
-            : <Navigate to="/login" replace />
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
         }
       />
 
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <Products />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/products" element={<Navigate to="/search" replace />} />
+
+      <Route
+        path="/inventory"
+        element={
+          <ProtectedRoute>
+            <InventoryPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/add"
+        element={
+          <ProtectedRoute>
+            <AddItemPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/products/:id"
+        element={
+          <ProtectedRoute>
+            <ProductDetails />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     </Routes>
   )
 }

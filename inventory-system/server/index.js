@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const authRoutes = require('./routes/auth');
 const inventoryRoutes = require('./routes/inventory');
 const initDb = require('./config/initDb');
 
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Inventory API is running' });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/inventory', inventoryRoutes);
 
 initDb()

@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 import './Input.css';
 
 const Input = forwardRef(({
@@ -10,7 +10,8 @@ const Input = forwardRef(({
   containerClassName = '',
   ...props
 }, ref) => {
-  const inputId = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = props.id || generatedId;
 
   const containerClasses = [
     'input-container',

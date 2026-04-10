@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState } from 'react'
+import { loginUser, registerUser } from '../api/authApi'
 
-const AuthContext = createContext()
+export const AuthContext = createContext()
+const AUTH_STORAGE_KEY = 'authUser'
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -11,36 +13,36 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem(AUTH_STORAGE_KEY)
 
-  useEffect(() => {
-    const token = localStorage.getItem('authToken')
-
-    if (token) {
-      // mock user
-      setUser({ username: 'admin', role: 'admin' })
+    if (!storedUser) {
+      return null
     }
 
-    setLoading(false)
-  }, [])
+    try {
+      return JSON.parse(storedUser)
+    } catch {
+      localStorage.removeItem(AUTH_STORAGE_KEY)
+      return null
+    }
+  })
+  const loading = false
 
   const login = async (username, password) => {
-    if (!username || !password) {
-      throw new Error('Invalid credentials')
-    }
+    const loggedInUser = await loginUser({ username, password })
+    setUser(loggedInUser)
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser))
+    return loggedInUser
+  }
 
-    const mockUser = { username, role: 'admin' }
-
-    setUser(mockUser)
-    localStorage.setItem('authToken', 'mock-token')
-
-    return mockUser
+  const register = async ({ username, password, fullName }) => {
+    return registerUser({ username, password, fullName })
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('authToken')
+    localStorage.removeItem(AUTH_STORAGE_KEY)
   }
 
   return (
@@ -50,6 +52,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!user,
         login,
+        register,
         logout
       }}
     >

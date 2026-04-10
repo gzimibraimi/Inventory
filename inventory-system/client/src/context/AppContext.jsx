@@ -1,64 +1,53 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import axios from 'axios'
 
 const AppContext = createContext()
 
-export const useApp = () => {
-  const context = useContext(AppContext)
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider')
-  }
-  return context
-}
+export const useApp = () => useContext(AppContext)
 
 export const AppProvider = ({ children }) => {
-  // Theme state
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme')
-    return saved ? JSON.parse(saved) : false
-  })
-
-  // App-wide loading state
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [selectedItemId, setSelectedItemId] = useState(null)
 
-  // Global error state
-  const [error, setError] = useState(null)
+  // 🔥 FETCH INVENTORY
+  const fetchInventory = async () => {
+    try {
+      setLoading(true)
 
-  // Theme effects
-  useEffect(() => {
-    localStorage.setItem('theme', JSON.stringify(isDark))
-    document.body.className = isDark ? 'dark' : 'light'
-  }, [isDark])
+      const res = await axios.get('http://localhost:5000/api/inventory')
 
-  const toggleTheme = () => setIsDark(!isDark)
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data.data
 
-  // Clear global error
-  const clearError = () => setError(null)
-
-  // Set global loading
-  const setGlobalLoading = (isLoading) => setLoading(isLoading)
-
-  const value = {
-    // Theme
-    isDark,
-    toggleTheme,
-
-    // Global state
-    loading,
-    error,
-    setGlobalLoading,
-    setError,
-    clearError
+      setItems(data)
+    } catch (err) {
+      console.error('Error fetching inventory:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
+  useEffect(() => {
+    fetchInventory()
+  }, [])
+
   return (
-    <AppContext.Provider value={value}>
+    <AppContext.Provider
+      value={{
+        items,
+        loading,
+        showAddForm,
+        selectedItemId,
+        fetchInventory,
+        onShowAddForm: setShowAddForm,
+        onItemSelected: setSelectedItemId,
+        onCloseModal: () => setSelectedItemId(null)
+      }}
+    >
       {children}
     </AppContext.Provider>
   )
-}
-
-// Backward compatibility - export useTheme as alias
-export const useTheme = () => {
-  const { isDark, toggleTheme } = useApp()
-  return { isDark, toggleTheme }
 }

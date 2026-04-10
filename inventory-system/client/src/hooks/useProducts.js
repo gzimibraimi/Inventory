@@ -21,12 +21,18 @@ export const useProducts = (initialFilters = {}) => {
     }
   }, [filters])
 
-  const updateFilters = useCallback((newFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters }))
+  const updateFilters = useCallback((keyOrFilters, value) => {
+    setFilters(prev => {
+      if (typeof keyOrFilters === 'string') {
+        return { ...prev, [keyOrFilters]: value }
+      }
+
+      return { ...prev, ...keyOrFilters }
+    })
   }, [])
 
-  const search = useCallback(() => {
-    fetchProducts(filters)
+  const search = useCallback((searchFilters = filters) => {
+    fetchProducts(searchFilters)
   }, [fetchProducts, filters])
 
   // Auto-fetch on mount and when filters change

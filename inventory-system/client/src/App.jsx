@@ -1,6 +1,5 @@
-import { BrowserRouter as Router } from 'react-router-dom'
-import { useContext } from 'react'
-import { AuthProvider, AuthContext } from './context/AuthContext'
+import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { AppProvider } from './context/AppContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppRoutes from './routes/AppRoutes'
@@ -9,7 +8,13 @@ import Navbar from './components/layout/Navbar'
 import './App.css'
 
 function Layout() {
-  const { user } = useContext(AuthContext)
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   // 🔐 Nese NUK ka user → mos shfaq layout
   if (!user) {
@@ -23,6 +28,14 @@ function Layout() {
         <Navbar
           title="📦 Inventory System"
           subtitle="Menaxhimi i paisjeve"
+          actions={[
+            {
+              label: 'Dil',
+              icon: '↪',
+              variant: 'outline',
+              onClick: handleLogout
+            }
+          ]}
         />
         <AppRoutes />
       </div>
