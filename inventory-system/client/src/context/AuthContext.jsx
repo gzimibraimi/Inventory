@@ -13,53 +13,46 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    // Check for existing auth token on mount
     const token = localStorage.getItem('authToken')
+
     if (token) {
-      // TODO: Validate token with backend
-      setUser({ username: 'admin', role: 'admin' }) // Mock user
-      setIsAuthenticated(true)
+      // mock user
+      setUser({ username: 'admin', role: 'admin' })
     }
+
     setLoading(false)
   }, [])
 
   const login = async (username, password) => {
-    try {
-      // TODO: Implement actual login API call
-      // For now, accept any non-empty credentials
-      if (username && password) {
-        const mockUser = { username, role: 'admin' }
-        setUser(mockUser)
-        setIsAuthenticated(true)
-        localStorage.setItem('authToken', 'mock-token')
-        return mockUser
-      } else {
-        throw new Error('Invalid credentials')
-      }
-    } catch (error) {
-      throw error
+    if (!username || !password) {
+      throw new Error('Invalid credentials')
     }
+
+    const mockUser = { username, role: 'admin' }
+
+    setUser(mockUser)
+    localStorage.setItem('authToken', 'mock-token')
+
+    return mockUser
   }
 
   const logout = () => {
     setUser(null)
-    setIsAuthenticated(false)
     localStorage.removeItem('authToken')
   }
 
-  const value = {
-    user,
-    loading,
-    isAuthenticated,
-    login,
-    logout
-  }
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated: !!user,
+        login,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

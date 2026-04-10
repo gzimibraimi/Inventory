@@ -26,6 +26,8 @@ const PublicRoute = ({ children }) => {
 }
 
 export default function AppRoutes() {
+  const { isAuthenticated } = useAuth()
+
   return (
     <Routes>
 
@@ -36,14 +38,28 @@ export default function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
       <Route path="/products/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
-
       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
       <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
       <Route path="/add" element={<ProtectedRoute><AddItemForm /></ProtectedRoute>} />
 
-      {/* Default redirects */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Smart redirect */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated
+            ? <Navigate to="/dashboard" replace />
+            : <Navigate to="/login" replace />
+        }
+      />
+
+      <Route
+        path="*"
+        element={
+          isAuthenticated
+            ? <Navigate to="/dashboard" replace />
+            : <Navigate to="/login" replace />
+        }
+      />
 
     </Routes>
   )

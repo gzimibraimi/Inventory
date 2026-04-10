@@ -1,36 +1,27 @@
 const express = require('express');
-const multer = require('multer');
+const router = express.Router();
+
 const {
   getItems,
-  importItems,
-  assignItem,
-  returnItem,
-  getSummary,
-  getReversPdf,
-  seedData,
-  createItem,
-  getitemHistory,
   getItemById,
+  createItem,
   updateItem,
   deleteItem,
-  exportItems,
 } = require('../controllers/inventoryController');
 
-const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
-
+// GET all items
 router.get('/', getItems);
-router.get('/summary', getSummary);
-router.get('/export', exportItems);
-router.post('/create', createItem);
+
+// GET single item
 router.get('/:itemId', getItemById);
-router.get('/:itemId/history', getitemHistory);
+
+// CREATE item
+router.post('/create', createItem);
+
+// UPDATE item
 router.put('/:itemId', updateItem);
+
+// DELETE item
 router.delete('/:itemId', deleteItem);
-router.post('/import', upload.single('file'), importItems);
-router.post('/seed', seedData);
-router.post('/assign', assignItem);
-router.post('/return', returnItem);
-router.get('/revers/:itemId', getReversPdf);
 
 module.exports = router;
