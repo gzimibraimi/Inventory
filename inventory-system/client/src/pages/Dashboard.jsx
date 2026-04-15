@@ -76,14 +76,14 @@ export default function Dashboard() {
                 <div className="btn-desc">Filtro dhe gjej paisjet</div>
               </div>
             </button>
-            <button className="quick-action-btn" onClick={() => handleNavigate('/search?status=inactive')}>
+            <button className="quick-action-btn" onClick={() => handleNavigate('/search?status=Inactive')}>
               <div className="btn-icon">📋</div>
               <div className="btn-text">
                 <div className="btn-title">Paisjet Lire</div>
                 <div className="btn-desc">Shiko paisjet e lira</div>
               </div>
             </button>
-            <button className="quick-action-btn" onClick={() => handleNavigate('/search?status=active')}>
+            <button className="quick-action-btn" onClick={() => handleNavigate('/search?status=Active')}>
               <div className="btn-icon">👤</div>
               <div className="btn-text">
                 <div className="btn-title">Paisjet e Caktuara</div>
