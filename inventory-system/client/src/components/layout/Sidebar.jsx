@@ -1,17 +1,24 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useTheme } from "../../context/ThemeContext";
+import { useLocation, useNavigate } from "react-router-dom"
+import { useTheme } from "../../context/ThemeContext"
 
 export default function Sidebar() {
-  const { isDark, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { isDark, toggleTheme } = useTheme()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "📊", path: "/dashboard" },
     { id: "search", label: "Kerko", icon: "🔍", path: "/search" },
     { id: "inventory", label: "Paisjet", icon: "📋", path: "/inventory" },
-    { id: "add", label: "Shto Paisje", icon: "➕", path: "/add" },
-  ];
+  ]
+
+  const handleClick = (item) => {
+    if (item.id === "add") {
+      navigate("/inventory", { state: { showAddForm: true } })
+    } else {
+      navigate(item.path)
+    }
+  }
 
   return (
     <aside className="sidebar">
@@ -23,13 +30,24 @@ export default function Sidebar() {
         {menuItems.map((item) => (
           <button
             key={item.id}
-            className={`nav-item${location.pathname === item.path ? " active" : ""}`}
-            onClick={() => navigate(item.path)}
+            className={`nav-item ${
+              location.pathname === item.path ? "active" : ""
+            }`}
+            onClick={() => handleClick(item)}
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
           </button>
         ))}
+
+        {/* Add button separate */}
+        <button
+          className="nav-item"
+          onClick={() => navigate("/inventory", { state: { showAddForm: true } })}
+        >
+          <span className="nav-icon">➕</span>
+          <span className="nav-label">Shto Paisje</span>
+        </button>
       </nav>
 
       <div className="sidebar-footer">
@@ -38,5 +56,5 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
-  );
+  )
 }

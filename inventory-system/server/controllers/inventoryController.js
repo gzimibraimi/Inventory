@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+
+// ================= STATUS HELPERS =================
 const ACTIVE_STATUSES = ['active', 'assigned'];
 const INACTIVE_STATUSES = ['inactive', 'available'];
 
@@ -17,7 +19,7 @@ const resolveStatusCondition = (status, values) => {
   return `status = $${values.length}`;
 };
 
-// ================= GET ALL ITEMS =================
+// ================= GET ITEMS (SEARCH + FILTERS) =================
 exports.getItems = async (req, res) => {
   try {
     const {
@@ -27,33 +29,39 @@ exports.getItems = async (req, res) => {
       assigned_to,
       category,
       office,
-      location,
+      location
     } = req.query;
 
     const conditions = [];
     const values = [];
 
+    // STATUS FILTER
     if (status && status !== 'all') {
       conditions.push(resolveStatusCondition(status, values));
     }
 
-    if (q) {
-      values.push(`%${q}%`);
+    // GLOBAL SEARCH
+    const safeQ = q?.trim();
+    if (safeQ) {
+      values.push(`%${safeQ}%`);
+      const idx = values.length;
+
       conditions.push(`
         (
-          asset_id ILIKE $${values.length} OR
-          inventory_number ILIKE $${values.length} OR
-          name ILIKE $${values.length} OR
-          brand ILIKE $${values.length} OR
-          model ILIKE $${values.length} OR
-          category ILIKE $${values.length} OR
-          office ILIKE $${values.length} OR
-          location ILIKE $${values.length} OR
-          assigned_to ILIKE $${values.length}
+          asset_id ILIKE $${idx} OR
+          inventory_number ILIKE $${idx} OR
+          name ILIKE $${idx} OR
+          brand ILIKE $${idx} OR
+          model ILIKE $${idx} OR
+          category ILIKE $${idx} OR
+          office ILIKE $${idx} OR
+          location ILIKE $${idx} OR
+          assigned_to ILIKE $${idx}
         )
       `);
     }
 
+    // FIELD FILTERS
     if (inventory_number) {
       values.push(`%${inventory_number}%`);
       conditions.push(`inventory_number ILIKE $${values.length}`);
@@ -79,16 +87,22 @@ exports.getItems = async (req, res) => {
       conditions.push(`location ILIKE $${values.length}`);
     }
 
-    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
 
-    const { rows } = await pool.query(
-      `SELECT * FROM inventory_items ${whereClause}
-       ORDER BY id ASC`
-    );
+    const query = `
+      SELECT *
+      FROM inventory_items
+      ${whereClause}
+      ORDER BY id ASC
+    `;
+
+    const { rows } = await pool.query(query, values);
 
     res.json({ data: rows });
   } catch (error) {
-    console.error(error);
+    console.error('GET ITEMS ERROR:', error);
     res.status(500).json({ error: 'Failed to fetch items' });
   }
 };
@@ -96,47 +110,41 @@ exports.getItems = async (req, res) => {
 // ================= SUMMARY =================
 exports.getSummary = async (req, res) => {
   try {
-    const [totalResult, inactiveResult, activeResult, inactiveItemsResult] = await Promise.all([
-      pool.query('SELECT COUNT(*)::int AS count FROM inventory_items'),
-      pool.query(
-        'SELECT COUNT(*)::int AS count FROM inventory_items WHERE status = ANY($1)',
-        [INACTIVE_STATUSES]
-      ),
-      pool.query(
-        'SELECT COUNT(*)::int AS count FROM inventory_items WHERE status = ANY($1)',
-        [ACTIVE_STATUSES]
-      ),
-      pool.query(
-        `SELECT * FROM inventory_items
-         WHERE status = ANY($1)
-         ORDER BY id ASC
-         LIMIT 5`,
-        [INACTIVE_STATUSES]
-      )
-    ]);
+    const total = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM inventory_items'
+    );
+
+    const active = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM inventory_items WHERE status = ANY($1)',
+      [ACTIVE_STATUSES]
+    );
+
+    const inactive = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM inventory_items WHERE status = ANY($1)',
+      [INACTIVE_STATUSES]
+    );
 
     res.json({
       data: {
-        total: totalResult.rows[0]?.count || 0,
-        available: inactiveResult.rows[0]?.count || 0,
-        assigned: activeResult.rows[0]?.count || 0,
-        availableItems: inactiveItemsResult.rows || []
+        total: total.rows[0].count,
+        assigned: active.rows[0].count,
+        available: inactive.rows[0].count
       }
     });
   } catch (error) {
-    console.error(error);
+    console.error('SUMMARY ERROR:', error);
     res.status(500).json({ error: 'Failed to fetch summary' });
   }
 };
 
-// ================= GET ONE =================
+// ================= GET BY ID =================
 exports.getItemById = async (req, res) => {
   try {
-    const id = Number(req.params.itemId);
+    const { itemId } = req.params;
 
     const { rows } = await pool.query(
-      `SELECT * FROM inventory_items WHERE id = $1`,
-      [id]
+      'SELECT * FROM inventory_items WHERE id = $1',
+      [itemId]
     );
 
     if (!rows.length) {
@@ -145,6 +153,7 @@ exports.getItemById = async (req, res) => {
 
     res.json({ data: rows[0] });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to fetch item' });
   }
 };
@@ -162,11 +171,13 @@ exports.createItem = async (req, res) => {
       office,
       location,
       floor,
-      notes,
+      notes
     } = req.body;
 
     if (!name || !inventory_number) {
-      return res.status(400).json({ error: 'Name and Inventory Number required' });
+      return res.status(400).json({
+        error: 'Name and Inventory Number required'
+      });
     }
 
     const { rows } = await pool.query(
@@ -184,7 +195,7 @@ exports.createItem = async (req, res) => {
         office || null,
         location || null,
         floor || null,
-        notes || null,
+        notes || null
       ]
     );
 
@@ -198,8 +209,7 @@ exports.createItem = async (req, res) => {
 // ================= UPDATE =================
 exports.updateItem = async (req, res) => {
   try {
-    const id = Number(req.params.itemId);
-
+    const { itemId } = req.params;
     const {
       asset_id,
       inventory_number,
@@ -210,7 +220,7 @@ exports.updateItem = async (req, res) => {
       office,
       location,
       floor,
-      notes,
+      notes
     } = req.body;
 
     const { rows } = await pool.query(
@@ -238,12 +248,13 @@ exports.updateItem = async (req, res) => {
         location,
         floor,
         notes,
-        id,
+        itemId
       ]
     );
 
     res.json({ data: rows[0] });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update item' });
   }
 };
@@ -251,66 +262,16 @@ exports.updateItem = async (req, res) => {
 // ================= DELETE =================
 exports.deleteItem = async (req, res) => {
   try {
-    const id = Number(req.params.itemId);
+    const { itemId } = req.params;
 
-    await pool.query(`DELETE FROM inventory_items WHERE id = $1`, [id]);
-
-    res.json({ message: 'Item deleted' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete item' });
-  }
-};
-
-// ================= ASSIGN =================
-exports.assignItem = async (req, res) => {
-  try {
-    const { itemId, employeeName } = req.body;
-
-    const { rows } = await pool.query(
-      `UPDATE inventory_items
-       SET assigned_to = $1, status = 'active'
-       WHERE id = $2
-       RETURNING *`,
-      [employeeName, itemId]
-    );
-
-    res.json({ data: rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to assign item' });
-  }
-};
-
-// ================= RETURN =================
-exports.returnItem = async (req, res) => {
-  try {
-    const { itemId } = req.body;
-
-    const { rows } = await pool.query(
-      `UPDATE inventory_items
-       SET assigned_to = NULL, status = 'inactive'
-       WHERE id = $1
-       RETURNING *`,
+    await pool.query(
+      'DELETE FROM inventory_items WHERE id = $1',
       [itemId]
     );
 
-    res.json({ data: rows[0] });
+    res.json({ message: 'Item deleted' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to return item' });
-  }
-};
-
-// ================= HISTORY =================
-exports.getItemHistory = async (req, res) => {
-  try {
-    const id = Number(req.params.itemId);
-
-    const { rows } = await pool.query(
-      `SELECT * FROM inventory_history WHERE item_id = $1 ORDER BY created_at DESC`,
-      [id]
-    );
-
-    res.json({ data: rows });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch history' });
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete item' });
   }
 };

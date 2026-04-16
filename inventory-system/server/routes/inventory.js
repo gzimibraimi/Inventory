@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const {
-  getItems,
+   getItems,
   getSummary,
   getItemById,
   createItem,
   updateItem,
-  deleteItem,
-} = require('../controllers/inventoryController');
+  deleteItem
+ } = require('../controllers/inventoryController');
 
 // GET all items
 router.get('/', getItems);

@@ -47,6 +47,7 @@ export default function AppRoutes() {
  
       <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+      
     </Routes>
   )
 }
