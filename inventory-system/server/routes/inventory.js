@@ -7,7 +7,8 @@ const {
   getItemById,
   createItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  getItemQrData
  } = require('../controllers/inventoryController');
 
 // GET all items
@@ -25,5 +26,6 @@ router.put('/:itemId', updateItem);
 
 // DELETE item
 router.delete('/:itemId', deleteItem);
+router.get('/:itemId/qr', getItemQrData);
 
 module.exports = router;

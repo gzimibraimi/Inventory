@@ -6,6 +6,8 @@ import Login from '../pages/Login'
 import ProductDetails from '../pages/ProductDetails'
 import Products from '../pages/Products'
 import Register from '../pages/Register'
+import QrScannerPage from '../pages/QrScannerPage';
+
  
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -47,6 +49,7 @@ export default function AppRoutes() {
  
       <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
+      <Route path="/qr"  element={<ProtectedRoute><QrScannerPage /></ProtectedRoute>}/>
       
     </Routes>
   )

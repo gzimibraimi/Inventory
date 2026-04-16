@@ -275,3 +275,29 @@ exports.deleteItem = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete item' });
   }
 };
+exports.getItemQrData = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    const { rows } = await pool.query(
+      `SELECT id, inventory_number, name FROM inventory_items WHERE id = $1`,
+      [itemId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // QR payload (simple but stable)
+    const qrData = {
+      id: rows[0].id,
+      code: rows[0].inventory_number
+    };
+
+    res.json({ data: qrData });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to generate QR data' });
+  }
+};

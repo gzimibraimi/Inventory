@@ -10,6 +10,7 @@ export default function Sidebar() {
     { id: "dashboard", label: "Dashboard", icon: "📊", path: "/dashboard" },
     { id: "search", label: "Kerko", icon: "🔍", path: "/search" },
     { id: "inventory", label: "Paisjet", icon: "📋", path: "/inventory" },
+    { id: "qr", label: "QR Scanner", icon: "📷", path: "/qr" }
   ]
 
   const handleClick = (item) => {

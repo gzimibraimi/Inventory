@@ -1,159 +1,109 @@
-import { useEffect, useState } from 'react'
-import { getItemById } from '../../api/productsApi'
+import { useEffect, useState } from "react";
+import httpClient from "../../api/httpClient";
+import QrCodeBox from './QrCodeBox';
 
-export default function ItemDetailModal({ itemId, onClose, onAssign, onReturn }) {
-  const [item, setItem] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const isAssigned = item && ['active', 'assigned'].includes(item.status)
+export default function ItemDetailModal({
+  itemId,
+  onClose,
+  onAssign,
+  onReturn
+}) {
+  const [item, setItem] = useState(null);
+  const [qrValue, setQrValue] = useState("");
+  const [loading, setLoading] = useState(true);
 
+  // 🔄 Load item + QR
   useEffect(() => {
-    const loadItem = async () => {
+    const loadData = async () => {
       try {
-        setLoading(true)
-        const data = await getItemById(itemId)
-        setItem(data)
-      } catch (error) {
-        console.error(error)
+        setLoading(true);
+
+        // fetch item details
+        const itemRes = await httpClient.get(`/api/inventory/${itemId}`);
+        const itemData = itemRes.data?.data;
+        setItem(itemData);
+
+        // fetch QR data
+        const qrRes = await httpClient.get(`/api/inventory/${itemId}/qr`);
+        setQrValue(qrRes.data?.data?.code || "");
+
+      } catch (err) {
+        console.error("Failed to load item:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     if (itemId) {
-      loadItem()
+      loadData();
     }
-  }, [itemId])
+  }, [itemId]);
 
-  if (loading) {
-    return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <p>Po ngarkohet...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!item) {
-    return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <p>Paisja nuk u gjet</p>
-        </div>
-      </div>
-    )
-  }
+  if (!itemId) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal">
+
+        {/* HEADER */}
         <div className="modal-header">
-          <h2>{item.name}</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <h2>📦 Detajet e Paisjes</h2>
+          <button onClick={onClose}>✖</button>
         </div>
 
+        {/* BODY */}
         <div className="modal-body">
-          <div className="detail-grid">
-            <div className="detail-row">
-              <span className="detail-label">ID:</span>
-              <span className="detail-value">{item.id}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Barcode:</span>
-              <span className="detail-value barcode-badge">{item.inventory_number}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Asset ID:</span>
-              <span className="detail-value">{item.asset_id || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Lloji:</span>
-              <span className="detail-value">{item.asset_type || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Marka:</span>
-              <span className="detail-value">{item.brand || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Modeli:</span>
-              <span className="detail-value">{item.model || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Serial:</span>
-              <span className="detail-value">{item.serial_number || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Kategoria:</span>
-              <span className="detail-value">{item.category || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Zyra:</span>
-              <span className="detail-value">{item.office || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Lokacion:</span>
-              <span className="detail-value">{item.location || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Kati:</span>
-              <span className="detail-value">{item.floor || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Statusi:</span>
-              <span className={`detail-value status-badge status-${item.status}`}>{item.status}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Në dorën e:</span>
-              <span className="detail-value">{item.assigned_to || '-'}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Shënime:</span>
-              <span className="detail-value">{item.notes || '-'}</span>
-            </div>
-          </div>
+          {loading ? (
+            <p>Po ngarkohet...</p>
+          ) : item ? (
+            <>
+              <div className="item-details">
+                <p><strong>Emri:</strong> {item.name}</p>
+                <p><strong>Inventory Nr:</strong> {item.inventory_number}</p>
+                <p><strong>Brand:</strong> {item.brand || "-"}</p>
+                <p><strong>Model:</strong> {item.model || "-"}</p>
+                <p><strong>Kategori:</strong> {item.category || "-"}</p>
+                <p><strong>Zyra:</strong> {item.office || "-"}</p>
+                <p><strong>Lokacion:</strong> {item.location || "-"}</p>
+                <p><strong>Status:</strong> {item.status}</p>
+                <p><strong>Punëtor:</strong> {item.assigned_to || "—"}</p>
+              </div>
 
-          {item.history && item.history.length > 0 && (
-            <div className="history-section">
-              <h3>Historiku i Paisjes</h3>
-              <ul className="history-list">
-                {item.history.map((record, idx) => (
-                  <li key={idx}>
-                    <span className="history-action">{record.action}</span>
-                    <span className="history-date">{new Date(record.created_at).toLocaleDateString()}</span>
-                    {record.to_employee && <span className="history-employee">→ {record.to_employee}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
+              {/* 🔳 QR CODE */}
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
+                <h3>QR Code</h3>
+                <QrCodeBox value={qrValue} />
+                <p style={{ marginTop: "10px" }}>
+                  {qrValue}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p>Nuk u gjet paisja</p>
           )}
         </div>
 
-        <div className="modal-footer">
-          <button
-            className="btn-primary"
-            onClick={() => {
-              onAssign(item)
-              onClose()
-            }}
-          >
-            {isAssigned ? 'Transfero' : 'Cakto'}
-          </button>
-          {isAssigned && (
+        {/* FOOTER */}
+        {item && (
+          <div className="modal-footer">
             <button
-              className="btn-secondary"
-              onClick={() => {
-                onReturn(item)
-                onClose()
-              }}
+              onClick={() => onAssign(item)}
+              disabled={item.status === "active"}
             >
-              Liro
+              👤 Cakto
             </button>
-          )}
-          <button className="btn-outline" onClick={onClose}>
-            Mbyll
-          </button>
-        </div>
+
+            <button
+              onClick={() => onReturn(item)}
+              disabled={item.status !== "active"}
+            >
+              🔄 Liro
+            </button>
+
+            <button onClick={onClose}>Mbyll</button>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
